@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>Monster Battle Pixel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pixel Battle">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Kanit&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#d9e2cc;--ink:#202838;--card:#f4f1e0;--line:#202838;--tx:#484848;--sh:#b8b8b8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c2438;--ink:#f0f0f0;--card:#2c3650;--line:#f0f0f0}}
+:root[data-theme="dark"]{--bg:#1c2438;--ink:#f0f0f0;--card:#2c3650;--line:#f0f0f0}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Press Start 2P','Kanit',ui-monospace,sans-serif;font-size:10px;line-height:1.6;display:flex;justify-content:center}
+#app{width:100%;max-width:480px;padding:14px}
+h1{font-size:20px;line-height:1.4;margin:10px 0 6px;text-align:center}
+.sub{text-align:center;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cd{background:var(--card);border:3px solid var(--line);color:var(--ink);font:inherit;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.cd.on{box-shadow:inset 0 0 0 3px #e0a020;background:#f8e8a8;color:#202838}
+.cd em{font-style:normal;color:#fff;padding:1px 6px;text-shadow:1px 1px #0006}
+.px{width:64px;height:64px;image-rendering:pixelated}
+.lv{display:flex;justify-content:center;align-items:center;gap:16px;margin:16px 0}
+.btn{background:#e0a020;border:3px solid var(--line);color:#202838;font:inherit;padding:10px 14px;box-shadow:3px 3px 0 var(--line)}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.btn:disabled{opacity:.4}.big{width:100%;font-size:13px;padding:14px}.sm{width:44px;height:44px;padding:0}
+.end{text-align:center;padding-top:60px}.end p{margin:16px 0 28px}
+.note{text-align:center;margin-top:10px;opacity:.7;font-size:8px}
+/* GBA screen */
+.gba{position:relative;container-type:inline-size;aspect-ratio:3/2;width:100%;overflow:hidden;background:#000;border:3px solid var(--line);color:var(--tx);text-shadow:.35cqw .35cqw var(--sh);text-transform:none}
+#sc{position:absolute;left:0;top:0;width:100%;height:70%;image-rendering:pixelated}
+.hb{position:absolute;background:#f8f0c8;border:.7cqw solid #404850;border-radius:1.6cqw;padding:1.6cqw 2.4cqw;font-size:2.8cqw;line-height:1.3}
+#ob{left:3%;top:5%;width:44%}#pb{left:52%;top:46%;width:46%}
+.nm{display:flex;justify-content:space-between;text-transform:uppercase}
+.hp{display:flex;align-items:center;gap:1.4cqw;margin-top:1.2cqw}.hp b{color:#d87818;font-size:2.4cqw;text-shadow:none}
+.tr{flex:1;height:2cqw;background:#505860;border:.4cqw solid #505860;border-radius:1cqw;overflow:hidden}
+.tr i{display:block;height:100%;width:100%;background:#48d048;transition:width .8s linear,background .3s}
+.nu{text-align:right;margin-top:1.2cqw}
+#tb,#mb{position:absolute;top:70%;height:30%;background:#f8f8f8;border:.9cqw solid #4a5c80;box-shadow:inset 0 0 0 .6cqw #d8b060;padding:2cqw 3cqw;font-size:3.3cqw;line-height:1.6;text-transform:uppercase;overflow:hidden}
+#tb{left:0;width:100%}#mb{right:0;display:none;font-size:2.8cqw;padding:1.6cqw 2.4cqw;line-height:1.5}
+.gba[data-m=main] #tb{width:55%}.gba[data-m=main] #mb{display:block;width:45%}
+.gba[data-m=fight] #tb{width:62%}.gba[data-m=fight] #mb{display:block;width:38%}
+.mg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;height:100%}
+#tb .mg{font-size:2.5cqw}
+.cell{position:relative;background:none;border:0;font:inherit;color:inherit;text-shadow:inherit;text-align:left;padding:0 0 0 3.6cqw;text-transform:uppercase;white-space:nowrap}
+.cell.sel::before,.cell:active::before{content:'';position:absolute;left:.6cqw;top:50%;margin-top:-1.2cqw;border:1.2cqw solid transparent;border-left:1.9cqw solid #484848;border-right:0}
+.swc{display:inline-block;width:2.2cqw;height:2.2cqw;margin-right:1cqw;border:.3cqw solid #484848}
+#ov{position:absolute;inset:0;display:none;flex-direction:column;gap:2cqw;padding:2.5cqw;background:#4878a8;text-transform:uppercase;font-size:3cqw}
+.slot{flex:1;display:flex;align-items:center;gap:3cqw;background:#f8f8f8;border:.7cqw solid #202838;font:inherit;color:inherit;text-shadow:inherit;text-align:left;padding:1cqw 2cqw;text-transform:uppercase}
+.slot.cur{background:#c8e8f8}.slot.ko{background:#e8c8c8}.slot>div{flex:1}.slot .px{width:12cqw;height:12cqw}
+.cancel{background:#d85848;border:.7cqw solid #202838;color:#fff;font:inherit;padding:1.5cqw;text-shadow:none}
+body{font-size:11px;line-height:1.7}
+.gba{text-shadow:none;color:#202020}
+#tb,#mb{font-size:3.5cqw;line-height:1.7;text-shadow:none}
+#mb{font-size:3.2cqw;line-height:1.5}
+#tb .mg{font-size:2.4cqw}
+.gba[data-m=fight] #tb{width:66%}.gba[data-m=fight] #mb{width:34%}
+#pb{top:42%}
+.bls{display:flex;gap:1.2cqw;margin-top:1.4cqw}
+.bl{width:1.9cqw;height:1.9cqw;border-radius:50%;background:#e04040;border:.3cqw solid #404850}.bl.x{background:#a0a0a0}
+.pg{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:1.6cqw;min-height:0}
+.slot{font-size:2.4cqw;padding:.8cqw 1.2cqw;gap:1.5cqw}.slot .px{width:10cqw;height:10cqw}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const TYPES={fire:'#f08030',water:'#4a90e0',grass:'#58b848',electric:'#f8d030',rock:'#a8946c',normal:'#a8a878'};
+const SE={fire:['grass'],water:['fire','rock'],grass:['water','rock'],electric:['water'],rock:['fire','electric'],normal:[]};
+const NV={fire:['water','fire','rock'],water:['water','grass'],grass:['fire','grass'],electric:['grass','electric','rock'],rock:['grass'],normal:[]};
+const eff=(a,d)=>SE[a].includes(d)?2:NV[a].includes(d)?0.5:1;
+// [name,type,[hp,atk,def,spd],moves[[name,type,power]x4]]
+const M=[
+['Flamyx','fire',[45,70,45,80],[['Ember','fire',40],['Fire Blast','fire',80],['Scratch','normal',50],['Rock Throw','rock',60]]],
+['Pyrodon','fire',[75,85,65,60],[['Fire Fang','fire',65],['Overheat','fire',100],['Slash','normal',70],['Spark','electric',60]]],
+['Aquor','water',[80,55,65,40],[['Bubble','water',40],['Hydro Pump','water',90],['Body Slam','normal',65],['Vine Whip','grass',50]]],
+['Tidalis','water',[55,80,90,35],[['Water Gun','water',55],['Crabhammer','water',85],['Vise Grip','normal',60],['Rock Smash','rock',60]]],
+['Leafo','grass',[60,60,55,70],[['Absorb','grass',40],['Solar Beam','grass',85],['Tackle','normal',45],['Aqua Jet','water',55]]],
+['Thornix','grass',[65,75,80,30],[['Needle Arm','grass',55],['Leaf Blade','grass',90],['Headbutt','normal',65],['Ember','fire',55]]],
+['Zapi','electric',[40,55,40,95],[['Spark','electric',40],['Thunder','electric',90],['Swift','normal',55],['Water Gun','water',50]]],
+['Voltusk','electric',[70,85,60,75],[['Shock Wave','electric',60],['Thunder','electric',95],['Crunch','normal',65],['Fire Fang','fire',55]]],
+['Bolder','rock',[70,70,100,25],[['Rock Throw','rock',40],['Rock Slide','rock',90],['Body Slam','normal',60],['Razor Leaf','grass',50]]],
+['Granix','rock',[85,95,70,40],[['Rock Tomb','rock',65],['Earthquake','rock',100],['Take Down','normal',70],['Spark','electric',55]]]
+];
+// sprite params: main,shade,light,accent,ears,headRx,bodyRx,extras (c cheeks, p arms, s shell, m mane)
+const SP=[
+['#f08030','#b8501c','#fcc080','#ffe060','pt',4.8,3.8,'c'],
+['#d84a2a','#902818','#f8c070','#ffd040','spk',5,5.5,''],
+['#4a90e0','#2858a8','#b0d8f8','#ffffff','fin',5.5,5.5,''],
+['#38b8c8','#1c7890','#a8ecf0','#f8f8f8','rd',5,4.5,'p'],
+['#58b848','#2e7c2c','#c0f0a0','#f8e050','leaf',4.5,4,''],
+['#3c9060','#206040','#a0e0a8','#f0a0d0','spk',4,4.5,'p'],
+['#f8d030','#c09810','#fff0a0','#e84040','pt',4.5,3.5,'c'],
+['#e8b830','#a07818','#fff0b0','#3860d8','rd',5,5,'m'],
+['#a8946c','#6c5a38','#e8d8a8','#7c7c88','',4.5,5.5,'s'],
+['#8c8c9c','#58586c','#d0d0e0','#f0f0b0','horn',5,5.5,'']];
+const K='#202028';
+function mkSprite(i){
+ const [c1,c2,c3,c4,ea,hr,br,ex]=SP[i],g=Array.from({length:16},()=>Array(16).fill(0));
+ const set=(x,y,c)=>{if(y<0||y>15)return;g[y][x]=c;g[y][15-x]=c};
+ const ell=(cy,rx,ry,c)=>{for(let y=0;y<16;y++)for(let x=0;x<8;x++){const dx=(7.5-x)/rx,dy=(y-cy)/ry;if(dx*dx+dy*dy<=1)set(x,y,c)}};
+ const pts=(a,c)=>a.forEach(([x,y])=>set(x,y,c));
+ if(ex.includes('s'))ell(10,6.6,4.6,c4);
+ if(ex.includes('m'))ell(6,hr+2,5,c4);
+ pts([[3,15],[4,15],[3,14],[4,14]],c2);
+ ell(11,br,3.7,c1);ell(11.6,br-1.6,2.4,c3);
+ if(ex.includes('p'))pts([[0,9],[1,9],[0,10],[1,10],[2,10],[0,11],[1,11],[2,11],[1,12],[2,12]],c1);
+ ell(6,hr,3.9,c1);
+ const E={pt:[[3,0],[3,1],[4,1],[3,2],[4,2],[5,2],[4,3],[5,3]],rd:[[2,2],[3,2],[1,3],[2,3],[3,3],[2,4],[3,4]],leaf:[[7,0],[6,0],[5,0],[4,1],[5,1],[6,1],[7,1],[7,2],[6,2]],horn:[[7,0],[7,1],[6,1],[7,2],[6,2],[6,3],[7,3]],spk:[[3,1],[3,2],[5,0],[5,1],[5,2],[7,1],[7,2],[2,3]],fin:[[0,4],[1,4],[0,5],[1,5],[2,5],[1,6],[2,6],[0,3]]};
+ pts(E[ea]||[],/leaf|horn|spk/.test(ea)?c4:c1);
+ if(ex.includes('c'))pts([[3,7],[4,7]],c4);
+ pts([[4,5],[4,6]],K);set(5,5,'#fff');pts([[6,8],[7,8]],K);
+ const o=g.map(r=>r.slice()),has=(x,y)=>x>=0&&y>=0&&x<16&&y<16&&g[y][x];
+ for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+  if(g[y][x]==c1){if(!has(x+1,y)||!has(x,y+1))o[y][x]=c2;else if(!has(x-1,y)||!has(x,y-1))o[y][x]=c3}
+  else if(!g[y][x]&&(has(x+1,y)||has(x-1,y)||has(x,y+1)||has(x,y-1)))o[y][x]=K}
+ const cv=document.createElement('canvas');cv.width=cv.height=16;const cx=cv.getContext('2d');
+ o.forEach((r,y)=>r.forEach((c,x)=>{if(c){cx.fillStyle=c;cx.fillRect(x,y,1,1)}}));return cv}
+const SPR=M.map((_,i)=>mkSprite(i)),SPU=SPR.map(c=>c.toDataURL());
+
+const TH={fire:'ไฟ',water:'น้ำ',grass:'หญ้า',electric:'ไฟฟ้า',rock:'หิน',normal:'ธรรมดา'};
+// c = จำนวนมอน, d = เลเวลเทียบกับเรา
+const TR=[{n:'ไอเอ๋อต้นกล้า',c:2,d:-4},{n:'ฟิวส์',c:2,d:0},{n:'อิง',c:4,d:9}];
+const $=s=>document.querySelector(s),app=$('#app');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms)),rnd=n=>Math.floor(Math.random()*n);
+let S={picks:[],add:[],lv:20},G,skip=false;
+const off={o:{x:0,y:0,a:1,show:false},p:{x:0,y:0,a:1,show:false}},pops=[];
+document.addEventListener('pointerdown',()=>skip=true);
+function mk(i,lv){const d=M[i],f=b=>Math.floor(2*b*lv/100)+5,hp=Math.floor(2*d[2][0]*lv/100)+lv+10;
+ return{i,d,lv,max:hp,hp,atk:f(d[2][1]),df:f(d[2][2]),spd:f(d[2][3])}}
+const nm=m=>m.d[0].toUpperCase();
+const card=(i,on,fn,dis)=>`<button class="cd ${on?'on':''}" ${dis?'disabled style="opacity:.35"':`onclick="${fn}(${i})"`}><img class="px" src="${SPU[i]}"><span>${M[i][0]}</span><em style="background:${TYPES[M[i][1]]}">${TH[M[i][1]]}</em></button>`;
+const tog=(a,i,n,f)=>{const k=a.indexOf(i);if(k>=0)a.splice(k,1);else{if(a.length==n)a.shift();a.push(i)}f()};
+
+function pick(){
+ app.innerHTML=`<h1>MONSTER<br>BATTLE</h1><p class="sub">เลือกมอนสเตอร์ 2 ตัว<br>แล้วสู้กับเทรนเนอร์ 3 คน</p>
+ <div class="grid">${M.map((_,i)=>card(i,S.picks.includes(i),'tp')).join('')}</div>
+ <div class="lv"><button class="btn sm" onclick="lvl(-1)">-</button><span>เลเวล ${S.lv}</span><button class="btn sm" onclick="lvl(1)">+</button></div>
+ <button class="btn big" ${S.picks.length==2?'':'disabled'} onclick="start()">เริ่มเกม (${S.picks.length}/2)</button>`}
+function tp(i){tog(S.picks,i,2,pick)}
+function lvl(n){S.lv=Math.min(60,Math.max(5,S.lv+n));pick()}
+function addScreen(){S.add=[];drawAdd()}
+function drawAdd(){const own=G.team.map(m=>m.i);
+ app.innerHTML=`<h1>MONSTER<br>BATTLE</h1><p class="sub">ทีมฟื้นฟูเต็มแล้ว!<br>เลือกมอนสเตอร์เพิ่ม 4 ตัว<br>ก่อนสู้กับคนสุดท้าย</p>
+ <div class="grid">${M.map((_,i)=>card(i,S.add.includes(i),'ta',own.includes(i))).join('')}</div>
+ <button class="btn big" style="margin-top:14px" ${S.add.length==4?'':'disabled'} onclick="confirmAdd()">ลุยเลย! (${S.add.length}/4)</button>`}
+function ta(i){tog(S.add,i,4,drawAdd)}
+function confirmAdd(){S.add.forEach(i=>G.team.push(mk(i,G.lv)));enter()}
+
+function start(){
+ G={lv:S.lv,team:S.picks.map(i=>mk(i,S.lv)),pi:0,t:0,oi:0,m:'none',sel:0,forced:0,busy:1,
+  tr:TR.map(t=>({n:t.n,mons:[...M.keys()].sort(()=>Math.random()-.5).slice(0,t.c).map(i=>mk(i,Math.max(1,S.lv+t.d+rnd(3)-1)))}))};
+ G.me=()=>G.team[G.pi];G.op=()=>G.tr[G.t].mons[G.oi];enter()}
+async function enter(){
+ G.busy=1;G.m='none';G.pi=0;G.forced=0;off.o={x:0,y:0,a:1,show:false};off.p={x:-110,y:0,a:1,show:false};
+ app.innerHTML=`<div class="gba" data-m="none"><canvas id="sc" width="240" height="112"></canvas>
+ <div class="hb" id="ob"><div class="nm"><span id="on"></span><span id="ol"></span></div><div class="hp"><b>HP</b><div class="tr"><i id="of"></i></div></div><div class="bls" id="obl"></div></div>
+ <div class="hb" id="pb"><div class="nm"><span id="pn"></span><span id="pl"></span></div><div class="hp"><b>HP</b><div class="tr"><i id="pf"></i></div></div><div class="nu" id="pu"></div></div>
+ <div id="tb"></div><div id="mb"></div><div id="ov"></div></div><p class="note">แตะกล่องข้อความเพื่อข้ามให้เร็วขึ้น</p>`;
+ panels();
+ await say(`เทรนเนอร์ ${G.tr[G.t].n} ขอท้าสู้!`);await sendOpp();
+ off.p.show=true;tw('p',{x:0},400);await say(`ไปเลย! ${nm(G.me())}!`);
+ G.busy=0;G.m='main';ui()}
+function panels(){const o=G.op(),p=G.me();
+ $('#on').textContent=o.d[0];$('#ol').textContent='Lv'+o.lv;$('#pn').textContent=p.d[0];$('#pl').textContent='Lv'+p.lv;
+ $('#obl').innerHTML=G.tr[G.t].mons.map(m=>`<i class="bl ${m.hp>0?'':'x'}"></i>`).join('');hp('o');hp('p')}
+function hp(s){const m=s=='o'?G.op():G.me(),r=m.hp/m.max,f=$('#'+(s=='o'?'of':'pf'));
+ f.style.width=r*100+'%';f.style.background=r>.5?'#48d048':r>.2?'#f8c800':'#f85848';if(s=='p')$('#pu').textContent=`${m.hp}/ ${m.max}`}
+async function say(t,hold=700){skip=false;const e=$('#tb');e.textContent='';
+ for(let i=1;i<=t.length;i++){e.textContent=t.slice(0,i);await sleep(skip?0:18)}
+ await sleep(skip?100:hold);skip=false}
+const tw=(s,p,ms)=>new Promise(r=>{const f={...off[s]},t0=performance.now();(function k(t){const u=Math.min(1,(t-t0)/ms);
+ for(const q in p)off[s][q]=f[q]+(p[q]-f[q])*u;u<1?requestAnimationFrame(k):r()})(t0)});
+async function sendOpp(){panels();off.o={x:90,y:0,a:1,show:true};tw('o',{x:0},400);
+ await say(`เทรนเนอร์ ${G.tr[G.t].n} ส่ง ${nm(G.op())} ออกมา!`)}
+
+function ui(){const g=$('.gba'),tb=$('#tb'),mb=$('#mb');g.dataset.m=G.m;mb.className=G.m=='main'?'mg':'';
+ if(G.m=='main'){tb.innerHTML=`${nm(G.me())}<br>จะทำอะไรดี?`;
+  mb.innerHTML=['ต่อสู้','กระเป๋า','ทีม','หนี'].map((t,i)=>`<button class="cell" onclick="menu(${i})">${t}</button>`).join('')}
+ else if(G.m=='fight'){const mv=G.me().d[3],v=mv[G.sel];
+  tb.innerHTML=`<div class="mg">${mv.map((x,i)=>`<button class="cell ${i==G.sel?'sel':''}" onclick="pickMove(${i})">${x[0]}</button>`).join('')}</div>`;
+  mb.innerHTML=`<div><span class="swc" style="background:${TYPES[v[1]]}"></span>${TH[v[1]]}</div><div>พลัง ${v[2]}</div><button class="cell" style="width:100%;height:30%" onclick="G.m='main';ui()">กลับ</button>`}}
+async function menu(i){if(G.busy)return;
+ if(i==0){G.m='fight';G.sel=0;ui()}
+ else if(i==2)openTeam();
+ else{G.busy=1;G.m='none';ui();await say(i==1?'ไม่มีไอเทม!':'ไม่ได้! หนีจากการต่อสู้กับเทรนเนอร์ไม่ได้!');G.busy=0;G.m='main';ui()}}
+function pickMove(i){if(G.busy)return;if(G.sel==i)turn({move:i});else{G.sel=i;ui()}}
+function openTeam(){const o=$('#ov');o.style.display='flex';
+ o.innerHTML=`<div class="pg">${G.team.map((m,i)=>{const r=m.hp/m.max;return`<button class="slot ${i==G.pi?'cur':''} ${m.hp<=0?'ko':''}" onclick="sw(${i})"><img class="px" src="${SPU[m.i]}"><div><div>${nm(m)} Lv${m.lv}</div><div class="tr"><i style="width:${r*100}%;background:${r>.5?'#48d048':r>.2?'#f8c800':'#f85848'}"></i></div><div>${m.hp}/ ${m.max}</div></div></button>`}).join('')}</div>`
+ +(G.forced?'':`<button class="cancel" onclick="$('#ov').style.display='none'">ยกเลิก</button>`)}
+async function sw(i){if(G.busy||G.team[i].hp<=0||i==G.pi)return;G.busy=1;$('#ov').style.display='none';G.m='none';ui();
+ if(!G.forced){await say(`กลับมา! ${nm(G.me())}!`,300);await tw('p',{x:-110},250)}
+ G.pi=i;panels();off.p={x:-110,y:0,a:1,show:true};tw('p',{x:0},350);await say(`ไปเลย! ${nm(G.me())}!`);
+ if(G.forced){G.forced=0;G.busy=0;G.m='main';ui()}else{G.busy=0;await turn({})}}
+
+function ai(o,p){const mv=o.d[3];if(Math.random()<.3)return mv[rnd(4)];
+ return mv.reduce((a,b)=>b[2]*eff(b[1],p.d[1])>a[2]*eff(a[1],p.d[1])?b:a)}
+async function attack(a,d,mv,as){const ds=as=='p'?'o':'p';
+ await say(`${nm(a)}${as=='o'?' ของคู่ต่อสู้':''} ใช้ ${mv[0].toUpperCase()}!`,300);
+ await tw(as,{x:as=='p'?14:-14,y:as=='p'?-8:8},110);await tw(as,{x:0,y:0},110);
+ const x=eff(mv[1],d.d[1]),cr=Math.random()<1/15; // คริติคอล 1/15
+ const dmg=Math.max(1,Math.floor((((2*a.lv/5+2)*mv[2]*a.atk/d.df)/50+2)*x*(cr?1.5:1)*(0.85+Math.random()*.15)));
+ d.hp=Math.max(0,d.hp-dmg);
+ for(let i=0;i<6;i++){off[ds].a=i%2?1:0;await sleep(60)}off[ds].a=1;
+ hp(ds);pops.push({s:ds,txt:'-'+dmg,t:performance.now(),c:cr});await sleep(900);
+ if(cr)await say('โจมตีโดนจุดสำคัญ! (x1.5)');
+ if(x==2)await say('ได้ผลอย่างยิ่ง! (x2)');else if(x==.5)await say('ได้ผลไม่ดีนัก... (x0.5)');
+ return d.hp<=0}
+async function turn(a){G.busy=1;G.m='none';ui();
+ const o=G.op(),p=G.me(),om=ai(o,p);let seq;
+ if(a.move!=null){const pm=p.d[3][a.move],pf=p.spd>o.spd||(p.spd==o.spd&&Math.random()<.5);
+  seq=pf?[['p',pm],['o',om]]:[['o',om],['p',pm]]}else seq=[['o',om]];
+ for(const [w,mv] of seq){const at=w=='p'?G.me():G.op(),df=w=='p'?G.op():G.me();if(at.hp<=0)break;
+  if(await attack(at,df,mv,w)){if(await faint(w=='p')=='stop')return;break}}
+ G.busy=0;G.m='main';ui()}
+async function faint(isOpp){const s=isOpp?'o':'p',m=isOpp?G.op():G.me();
+ await tw(s,{y:40,a:0},500);await say(`${nm(m)}${isOpp?' ของคู่ต่อสู้':''} สลบแล้ว!`);
+ if(isOpp){
+  if(G.oi<G.tr[G.t].mons.length-1){G.oi++;await sendOpp();return'end'}
+  await say(`คุณชนะเทรนเนอร์ ${G.tr[G.t].n}!`);
+  if(G.t>=2){end(true);return'stop'}
+  G.t++;G.oi=0;G.team.forEach(x=>x.hp=x.max);
+  if(G.t==2){await say('ทีมของคุณฟื้นฟูเต็มแล้ว!');addScreen();return'stop'}
+  panels();await say('ทีมของคุณฟื้นฟูเต็มแล้ว!');
+  await say(`เทรนเนอร์ ${G.tr[G.t].n} ขอท้าสู้!`);await sendOpp();return'end'}
+ if(G.team.some(x=>x.hp>0)){G.forced=1;G.busy=0;openTeam();return'stop'}
+ end(false);return'stop'}
+function end(win){G=null;app.innerHTML=`<div class="end"><h1>${win?'คุณชนะ!':'คุณพ่ายแพ้...'}</h1><p>${win?'ชนะเทรนเนอร์ครบทั้ง 3 คน':'ลองเปลี่ยนทีมแล้วสู้ใหม่'}</p><button class="btn big" onclick="pick()">เล่นอีกครั้ง</button></div>`}
+
+function pl(x,cx,cy,rx,ry){x.fillStyle='#4a8a3c';x.beginPath();x.ellipse(cx,cy+3,rx,ry,0,0,7);x.fill();x.fillStyle='#8ed070';x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fill()}
+function loop(t){const c=$('#sc');
+ if(c&&G&&G.me){const x=c.getContext('2d');x.imageSmoothingEnabled=false;
+  x.fillStyle='#9fd4e8';x.fillRect(0,0,240,112);x.fillStyle='#bfe6a8';x.fillRect(0,40,240,8);
+  for(let y=48;y<112;y+=8){x.fillStyle=(y/8)%2?'#6fb85c':'#7cc468';x.fillRect(0,y,240,8)}
+  pl(x,180,62,46,9);pl(x,64,106,58,10);
+  const b=Math.round(Math.sin(t/350));
+  if(off.o.show){x.globalAlpha=off.o.a;x.drawImage(SPR[G.op().i],148+Math.round(off.o.x),6+Math.round(off.o.y)+b,64,64)}
+  if(off.p.show){x.globalAlpha=off.p.a;x.drawImage(SPR[G.me().i],24+Math.round(off.p.x),26+Math.round(off.p.y)+b,80,80)}
+  const now=performance.now();
+  for(let i=pops.length-1;i>=0;i--){const p=pops[i],u=(now-p.t)/1100;if(u>1){pops.splice(i,1);continue}
+   x.globalAlpha=u>.75?(1-u)*4:1;x.font=`${p.c?12:9}px 'Press Start 2P',monospace`;x.textAlign='center';x.lineJoin='round';x.lineWidth=3;x.strokeStyle='#fff';
+   const px=p.s=='o'?180:64,py=(p.s=='o'?32:64)-Math.round(u*12);x.strokeText(p.txt,px,py);x.fillStyle='#e01818';x.fillText(p.txt,px,py)}
+  x.globalAlpha=1}
+ requestAnimationFrame(loop)}
+requestAnimationFrame(loop);pick();
+</script>
+</body>
+</html>
